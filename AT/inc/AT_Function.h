@@ -2,29 +2,24 @@
 #define _AT_FUNCTION_H_
 
 /*add user lib*/
-#include "myusart.h"
 #include "cJSON.h"
 #include "onenet.h"
 
 /*add c lib*/
-//#include "string.h"
-//#include "stdio.h"
-//#include "stdlib.h"
-//#include "math.h"
-//#include <stdint.h>
-//#include <stdbool.h>
-//#include "math.h"
-//#include <stdarg.h>
-//#include "time.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdarg.h>
 
-/*esp8266参数定义*/
 #define AT_UART_DEVICE 2
 
-#define WIFI_SSID "main"
+#define WIFI_SSID "CU_CKVk"
 
-#define WIFI_PASSWORD "12345678"
+#define WIFI_PASSWORD "vb4h85ya"
 
-#define MQTT_KEEP_ALIVE 30
+#define MQTT_KEEP_ALIVE 5 * 10
 
 #define NTP_SERVER "time.windows.com"
 
@@ -34,7 +29,7 @@
 #define IP_ADDRESS 									"mqtts.heclouds.com"
 #define PORT_NUMBER 								1883
 #define PRODUCT_ID 									"2Its5wq8a3"
-#define DEVICE_NAME 								"lot_device"
+#define DEVICE_NAME 								"device_1"
 #define MY_SECRET_KEY               "WmhibHUzS0JqeTMwTHlEVGVSM2p5dmlpcVRUbUdjeU0="
 #define TOKEN												"version=2018-10-31&res=products%2F2Its5wq8a3&et=1956499200&method=md5&sign=7sklBTPpND6BDv%2BD1VZxWQ%3D%3D"
 #define OTA_TOKEN										"vversion=2022-05-01&res=products%2F2Its5wq8a3&et=1956499200&method=md5&sign=%2BLyzuErgEXieVgmL%2FPZ%2B1g%3D%3D"
@@ -60,23 +55,27 @@
 
 //AT状态机状态
 #define AT_STATUS_NUM 8
+
 typedef enum
 {
-    AT_HW_INIT = 0,//AT设备硬件初始化
-    AT_REGISTER,//AT指令注册
-    AT_INIT,//AT设备软件初始化
-    AT_IDLE,//AT设备空闲状态 此状态下等待平台的指令
-
-    /*MQTT*/
-    AT_MQTT_PARSE,//AT设备解析平台下发的数据
-
-    /*HTTP*/
-    AT_HTTP_OTA_IDLE,//检查是否有升级任务
-    AT_HTTP_OTA_DOWNLOAD,//检查是否有升级任务
-    AT_HTTP_OTA_DOWNLOAD_FINISH,//检查是否有升级任务
-    AT_HTTP_OTA_DOWNLOAD_FAIL,//检查是否有升级任务
-
+    AT_HW_INIT = 0,        // AT设备硬件初始化
+    AT_REGISTER,            // AT指令注册
+    AT_INIT,                // AT设备软件初始化
+    AT_IDLE,                // AT设备空闲状态 此状态下等待平台的指令
+    AT_MQTT_PARSE,          // AT设备解析平台下发的数据
+    AT_HTTP_OTA_IDLE,       // 检查是否有升级任务
+    AT_HTTP_OTA_DOWNLOAD,   // 下载升级包
+    AT_HTTP_OTA_DOWNLOAD_FINISH, // 下载完成
+    AT_HTTP_OTA_DOWNLOAD_FAIL,   // 下载失败
+    AT_STATUS_MAX           // 状态总数
 } AT_STATUS_TYPE_t;
+
+typedef enum
+{
+    AT_MSG_TYPE = 0,
+    AT_MSG_TYPE_URC = 1,
+    AT_MSG_TYPE_ERROR = 2,
+}AT_MSG_TYPE_t;
 
 //状态机对应的回调函数
 typedef struct
@@ -125,13 +124,15 @@ typedef struct
 // 定义 AT 设备结构体
 typedef struct {
     AT_STATUS_TYPE_t status;                 // 设备状态
-    AT_CMD_t *CMD_TABLE;                // AT 命令数组指针
-    AT_URC_t *URC_TABLE;                // AT 命令数组指针
     char *msg_buf;                   // 消息缓冲区
-		uint8_t init_step;									//初始化步骤
+    uint32_t buf_size;               // 缓冲区大小
+    uint32_t head;                   // 写指针
+    uint32_t tail;                   // 读指针
+    uint32_t count;                  // 当前数据量
+	uint8_t init_step;									//初始化步骤
     mqtt_connect_params_t mqtt_params; // MQTT 连接参数
     wifi_params_t wifi_params;   // WiFi 连接参数
-	  uint8_t recv_flag;
+	uint8_t recv_flag;
 } AT_Device_t;
 
 //AT上行数据参数
@@ -142,7 +143,6 @@ typedef struct{
   char ackMsg[32];
   uint16_t ackCode;
 }AT_upload_t;
-
 
 typedef enum
 {
@@ -178,6 +178,9 @@ typedef enum
 
 extern AT_Device_t AT_Device;
 extern AT_upload_t at_upload;
+extern AT_CMD_t AT_Cmd_table[AT_COMMAND_ARRAY_SIZE];
+extern AT_URC_t AT_URC_table[AT_COMMAND_ARRAY_SIZE];
+
 
 void net_send(uint8_t *buf, uint16_t size);
 void at_delay_ms(uint32_t delay_time);
@@ -186,7 +189,7 @@ void at_clear(void);
 at_err_t AT_SendCmd(const char *cmd, const char *response, uint16_t timeout, uint8_t *data_buf);
 
 void AT_poll(void); 
-uint8_t AT_Cmd_Register(AT_Device_t *at_device, const char *response,uint16_t timeout, void (*callback_response)(void),int insert_count, const char *cmd, ...);
+at_err_t AT_Cmd_Register(const char *response, uint16_t timeout, void (*callback_response)(void), int insert_count, const char *cmd, ...);
 at_err_t AT_SendCmd(const char *cmd, const char *response, uint16_t timeout , uint8_t *data_buf);
 void AT_HW_INIT_CallBack(void *device , void *arg2);
 void AT_INIT_CallBack(void *device , void *arg2);
@@ -194,8 +197,5 @@ void AT_REGISTER_CallBack(void *device , void *arg2);
 void AT_IDLE_CallBack(void *device , void *arg2);
 void AT_upload_poll(void);
 void at_time_callback(void);
-void AT_HTTP_OTA_IDLE_CallBack(void *device , void *info);
-void AT_HTTP_OTA_DOWNLOAD_CallBack(void *device , void *info);
-void AT_HTTP_OTA_DOWNLOAD_FINISH_CallBack(void *device , void *info);
-void AT_HTTP_OTA_DOWNLOAD_FAIL_CallBack(void *device , void *info);
+
 #endif

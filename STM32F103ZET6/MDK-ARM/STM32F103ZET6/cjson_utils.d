@@ -1,0 +1,11 @@
+stm32f103zet6\cjson_utils.o: ..\BSP\src\cJSON_Utils.c
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\ctype.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdlib.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\limits.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\math.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\float.h
+stm32f103zet6\cjson_utils.o: ..\BSP\inc\cJSON_Utils.h
+stm32f103zet6\cjson_utils.o: ..\BSP\inc\cJSON.h
+stm32f103zet6\cjson_utils.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stddef.h

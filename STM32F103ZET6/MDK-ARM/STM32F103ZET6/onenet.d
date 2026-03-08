@@ -1,0 +1,13 @@
+stm32f103zet6\onenet.o: ..\BSP\src\onenet.c
+stm32f103zet6\onenet.o: ..\BSP\inc\onenet.h
+stm32f103zet6\onenet.o: ..\BSP\inc\base64.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stddef.h
+stm32f103zet6\onenet.o: ..\BSP\inc\hmac_sha1.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\string.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdio.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdlib.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\math.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdint.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdbool.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\stdarg.h
+stm32f103zet6\onenet.o: E:\KEIL\CORE\ARM\ARM_Compiler_5.06u7\Bin\..\include\time.h

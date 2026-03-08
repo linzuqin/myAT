@@ -37,30 +37,30 @@ void mqtt_cmd_init(AT_Device_t *at_device)
     at_device->mqtt_params.reporting_interval = MQTT_KEEP_ALIVE;
 
 	
-		memcpy(at_device->mqtt_params.Token , TOKEN , sizeof(TOKEN));
+	memcpy(at_device->mqtt_params.Token , TOKEN , sizeof(TOKEN));
 //    OneNET_Authorization("2018-10-31", at_device->mqtt_params.Product_ID, 1956499200, at_device->mqtt_params.SECRET_KEY, at_device->mqtt_params.Device_Name, at_device->mqtt_params.Token, sizeof(at_device->mqtt_params.Token), 1);
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,
                     "AT+CWJAP=\"%s\",\"%s\"\r\n", at_device->wifi_params.WiFi_SSID, at_device->wifi_params.WiFi_Password);
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,
                     "AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\"\r\n");
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,       
                     "AT+MQTTUSERCFG=0,1,\"%s\",\"%s\",\"%s\",0,0,\"\"\r\n",
                     at_device->mqtt_params.Device_Name, at_device->mqtt_params.Product_ID, at_device->mqtt_params.Token);
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,       
                     "AT+MQTTCONNCFG=0,%d,0,\"\",\"\",0,0\r\n",at_device->mqtt_params.keepalive);
 
-    //    AT_Cmd_Register(at_device, "OK", 100, NULL, -1,
-    //                    "AT+MQTTCLIENTID=0,\"%s\"\r\n",
-    //                    clientId);
+    //    AT_Cmd_Register("OK", 1000, NULL, -1,       
+//                    "AT+MQTTCLIENTID=0,\"%s\"\r\n",
+    //                    clientId);    
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,       
                     "AT+MQTTCONN=0,\"%s\",%d,1\r\n", IP_ADDRESS, PORT_NUMBER);
 
-    AT_Cmd_Register(at_device, "OK", 1000, NULL, -1,
+    AT_Cmd_Register("OK", 1000, NULL, -1,       
                     "AT+MQTTSUB=0,\"%s\",1\r\n", SET_TOPIC);
 }
 
@@ -117,6 +117,7 @@ uint8_t mqtt_parse(void *device, void *buf)
 
             at_upload.ackCode = 200;
             at_upload.ackFlag = 1;
+						at_upload.refreshFlag = 1;
         }
         else
         {
@@ -139,5 +140,45 @@ at_err_t mqtt_refresh(void)
 {
     at_err_t result = AT_MQTT_SEND_FAIL;
 
+    cJSON *root = cJSON_CreateObject();
+    if (root == NULL)
+    {
+        return result;
+    }
+
+    cJSON_AddStringToObject(root, "id", "123");
+    cJSON_AddStringToObject(root, "version", "1.0");
+    cJSON *params = cJSON_CreateObject();
+    if (params == NULL)
+    {
+        return result;
+    }
+
+    cJSON *fanMode_js = cJSON_CreateObject();
+    cJSON_AddNumberToObject(fanMode_js, "value", 1);
+    cJSON_AddItemToObject(params, "fanMode", fanMode_js);
+
+    cJSON *fan_status_js = cJSON_CreateObject();
+    cJSON_AddNumberToObject(fan_status_js, "value", 1);
+    cJSON_AddItemToObject(params, "fan_status", fan_status_js);
+
+    cJSON *temp_js = cJSON_CreateObject();
+    cJSON_AddNumberToObject(temp_js, "value", 10/10.0);
+    cJSON_AddItemToObject(params, "temp", temp_js);
+
+    cJSON *temp_value_js = cJSON_CreateObject();
+    cJSON_AddNumberToObject(temp_value_js, "value", 1);
+    cJSON_AddItemToObject(params, "temp_value", temp_value_js);
+		
+    cJSON_AddItemToObject(root, "params", params);
+
+    char *json_str = cJSON_PrintUnformatted(root);
+
+    if (json_str != NULL)
+    {
+        result = mqtt_pub(POST_TOPIC, json_str, strlen(json_str));
+        free(json_str);
+    }
+    cJSON_Delete(root);
     return result;
 }
